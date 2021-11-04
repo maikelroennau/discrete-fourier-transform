@@ -1,6 +1,7 @@
 import timeit
 from pathlib import Path
 
+import cv2
 import numpy as np
 from skimage.io import imread, imsave
 
@@ -75,10 +76,10 @@ def ifft2(F):
     return f.real
 
 
-def composite(original, compressed, output_path):
+def composite(original, compressed, output_path, extension=".jpg"):
     output_path = Path(output_path)
-    composite_image = str(output_path.parent.joinpath(f"{output_path.stem}_composite.jpg"))
-    diff_image = str(output_path.parent.joinpath(f"{output_path.stem}_diff.jpg"))
+    composite_image = str(output_path.parent.joinpath(f"{output_path.stem}_composite{extension}"))
+    diff_image = str(output_path.parent.joinpath(f"{output_path.stem}_diff{extension}"))
 
     original = imread(original)
     compressed = imread(compressed)
@@ -94,9 +95,9 @@ def composite(original, compressed, output_path):
 
 def main():
     filename = "cameraman.tif"
-    filename_small = "cameraman_small.tif"
+    filename_small = "cameraman_small_64x64.tif"
 
-    Path("output").mkdir(exist_ok=True)
+    Path("output_fft").mkdir(exist_ok=True)
 
     ##
     ## Exercise 1
@@ -109,19 +110,19 @@ def main():
     shifted_spectrum = np.fft.fftshift(F)
     shifted_spectrum = np.abs(shifted_spectrum)
     shifted_spectrum = np.log(shifted_spectrum + 1)
-    imsave("output/shifted_spectrum.png", shifted_spectrum)
+    imsave("output_fft/shifted_spectrum.png", shifted_spectrum)
 
     F_numpy = np.fft.fft2(f)
     shifted_spectrum = np.fft.fftshift(F_numpy)
     shifted_spectrum = np.abs(shifted_spectrum)
     shifted_spectrum = np.log(shifted_spectrum + 1)
-    imsave("output/shifted_spectrum_numpy.png", shifted_spectrum)
+    imsave("output_fft/shifted_spectrum_numpy.png", shifted_spectrum)
 
     f = ifft2(F)
-    imsave("output/reconstructed.png", f)
+    imsave("output_fft/reconstructed.png", f)
 
     f_numpy = np.fft.ifft2(F_numpy).real
-    imsave("output/reconstructed_numpy.png", f_numpy)
+    imsave("output_fft/reconstructed_numpy.png", f_numpy)
 
 
     # c)
@@ -150,13 +151,24 @@ def main():
     ##
     ## Exercise 2
     ##
-    composite("error_level_analysis/IMG_2960 - original.jpg", "error_level_analysis/IMG_2960 - 90.jpg", "output/IMG_2960_90.jpg")
-    composite("error_level_analysis/IMG_2960 - original.jpg", "error_level_analysis/IMG_2960 - 70.jpg", "output/IMG_2960_70.jpg")
-    composite("error_level_analysis/IMG_2960 - original.jpg", "error_level_analysis/IMG_2960 - 50.jpg", "output/IMG_2960_50.jpg")
+    composite("error_level_analysis/IMG_2960 - original.jpg", "error_level_analysis/IMG_2960 - 90.jpg", "output_fft/IMG_2960_90.jpg")
+    composite("error_level_analysis/IMG_2960 - original.jpg", "error_level_analysis/IMG_2960 - 70.jpg", "output_fft/IMG_2960_70.jpg")
+    composite("error_level_analysis/IMG_2960 - original.jpg", "error_level_analysis/IMG_2960 - 50.jpg", "output_fft/IMG_2960_50.jpg")
 
-    composite("error_level_analysis/IMG_7867 - original.jpg", "error_level_analysis/IMG_7867 - 90.jpg", "output/IMG_7867_90.jpg")
-    composite("error_level_analysis/IMG_7867 - original.jpg", "error_level_analysis/IMG_7867 - 70.jpg", "output/IMG_7867_70.jpg")
-    composite("error_level_analysis/IMG_7867 - original.jpg", "error_level_analysis/IMG_7867 - 50.jpg", "output/IMG_7867_50.jpg")
+    composite("error_level_analysis/IMG_7867 - original.jpg", "error_level_analysis/IMG_7867 - 90.jpg", "output_fft/IMG_7867_90.jpg")
+    composite("error_level_analysis/IMG_7867 - original.jpg", "error_level_analysis/IMG_7867 - 70.jpg", "output_fft/IMG_7867_70.jpg")
+    composite("error_level_analysis/IMG_7867 - original.jpg", "error_level_analysis/IMG_7867 - 50.jpg", "output_fft/IMG_7867_50.jpg")
+
+    img_2960 = cv2.imread("error_level_analysis/IMG_2960 - original.jpg")
+    cv2.imwrite("error_level_analysis/IMG_2960 - original.png", img_2960)
+    cv2.imwrite("error_level_analysis/IMG_2960 - 1.png", img_2960, [cv2.IMWRITE_PNG_COMPRESSION, 1])
+    cv2.imwrite("error_level_analysis/IMG_2960 - 3.png", img_2960, [cv2.IMWRITE_PNG_COMPRESSION, 3])
+    cv2.imwrite("error_level_analysis/IMG_2960 - 5.png", img_2960, [cv2.IMWRITE_PNG_COMPRESSION, 5])
+
+    composite("error_level_analysis/IMG_2960 - original.png", "error_level_analysis/IMG_2960 - 1.png", "output_fft/IMG_2960_1.png", extension=".png")
+    composite("error_level_analysis/IMG_2960 - original.png", "error_level_analysis/IMG_2960 - 3.png", "output_fft/IMG_2960_3.png", extension=".png")
+    composite("error_level_analysis/IMG_2960 - original.png", "error_level_analysis/IMG_2960 - 5.png", "output_fft/IMG_2960_5.png", extension=".png")
+
 
 
 if __name__ == "__main__":
